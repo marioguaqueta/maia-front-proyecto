@@ -1,141 +1,206 @@
 # 🦅 Proyecto de Detección y Conteo Automático de Fauna
 
-Este proyecto implementa un sistema de detección y conteo automatizado de fauna silvestre en imágenes aéreas utilizando modelos de visión por computadora basados en la familia **YOLO** (Ultralytics). Incluye una pipeline completa de corrección de datos, entrenamiento con YOLO11, evaluación y una aplicación interactiva construida con **Streamlit**.
+Este proyecto implementa un sistema de detección y conteo automatizado de fauna silvestre en imágenes aéreas utilizando la familia de modelos **YOLO** (Ultralytics). Incluye una pipeline completa de corrección de datos, entrenamiento con YOLO11, evaluación avanzada y una aplicación interactiva construida en **Streamlit**.
 
 ---
 
-## 📌 Contenido del Proyecto
+# 📌 Contenido del Proyecto
 - Corrección y estandarización de anotaciones
-- Conversión de formatos Pascal VOC → YOLO
-- Entrenamiento con YOLO11s
-- Evaluación de desempeño
-- Interfaz web interactiva con Streamlit
-- Documentación técnica y preguntas frecuentes
+- Conversión de formatos (Pascal VOC → YOLO)
+- Entrenamiento y evaluación con YOLO11s
+- Análisis de métricas de detección
+- Aplicación interactiva con Streamlit
+- Documentación técnica y preguntas de defensa académica
 
 ---
 
 # 🖥️ ¿Qué es Streamlit?
 
-**Streamlit** es un framework de Python para crear **aplicaciones web interactivas** de forma rápida y sencilla, sin necesidad de escribir HTML, CSS ni JavaScript.
+**Streamlit** es un framework de Python que permite crear **aplicaciones web interactivas** sin necesidad de conocimientos avanzados en frontend. Es ampliamente utilizado por científicos de datos, analistas e ingenieros de machine learning para prototipado, visualización y despliegue de modelos.
 
 ### ✔️ ¿Para qué sirve?
-- Visualizar datos y gráficos.
-- Desplegar modelos de IA y ML.
-- Construir dashboards interactivos.
-- Crear prototipos funcionales en minutos.
+- Dashboards interactivos
+- Aplicaciones de ML/IA
+- Manipulación de datos en tiempo real
+- Interfaces amigables para pruebas de modelos
 
 ### ⭐ Cualidades destacadas
-- Sintaxis extremadamente simple (solo Python).
-- Widgets integrados (sliders, selects, formularios).
-- Integración con Pandas, NumPy, PyTorch, TensorFlow, Matplotlib, Plotly y más.
-- Recarga automática al guardar el archivo.
-- Despliegue fácil en la nube o servidores propios.
-
-En este proyecto se utiliza para visualizar detecciones, métricas y facilitar pruebas del modelo.
+- Sintaxis simple (solo Python)
+- Recarga automática al guardar cambios
+- Widgets nativos (sliders, selects, botones)
+- Integración directa con Pandas, NumPy, Torch, TensorFlow
+- Despliegue rápido en la nube o servidores propios
 
 ---
 
 # 🤖 ¿Qué es Ultralytics?
 
-**Ultralytics** es la organización creadora de la familia de modelos YOLO (You Only Look Once), que son los más utilizados en detección de objetos por su rapidez y precisión.
+**Ultralytics** es la organización responsable de la familia de modelos YOLO. Su paquete oficial `ultralytics` provee una API simple, eficiente y rápida para:
 
-Su paquete oficial `ultralytics` permite:
-- Entrenar modelos YOLO con pocas líneas de código.
-- Correr inferencias rápidas.
-- Revisar métricas y gráficas de entrenamiento.
-- Exportar modelos a diferentes formatos.
+- Entrenar modelos
+- Realizar inferencias
+- Revisar métricas y curvas
+- Exportar modelos a múltiples formatos
 
-### Ventajas principales
-- API simple
-- Modelos optimizados para GPU
-- Comunidad activa y constante actualización
-- Ideal para problemas de visión por computadora a gran escala
+Sus modelos están optimizados para GPU, obteniendo un excelente equilibrio entre rapidez y precisión.
 
 ---
 
-# 🧠 Uso de YOLO11
+# 🧠 ¿Qué es YOLO?
 
-**YOLO11** es la última versión de los modelos YOLO, con mejoras significativas en precisión, especialmente en objetos pequeños, y mayor eficiencia computacional.
+**YOLO (You Only Look Once)** es una familia de modelos *single-shot* para detección de objetos, conocida por ser:
 
-### ¿Por qué YOLO11s?
-- Excelente balance entre velocidad y precisión.
-- +3.2% mAP en objetos pequeños respecto a YOLOv8.
-- Inferencia más rápida que otros modelos como HerdNet.
-- Ideal para despliegue en escenarios reales con hardware limitado.
+- **Extremadamente rápida**  
+- **Eficiente en uso de GPU**
+- **Precisa en objetos pequeños**
+- **Ideal para aplicaciones en tiempo real**
 
-YOLO11s fue la opción más adecuada para detectar fauna en imágenes aéreas donde los animales ocupan pocos píxeles en la escena.
+### ¿Cómo funciona?
+YOLO divide la imagen en una grilla y predice simultáneamente:
+
+- Localización de cajas (bounding boxes)
+- Confianza de la detección
+- Clase del objeto
+
+Todo en un solo paso, lo que lo hace más rápido que métodos como R-CNN o Detectron2.
+
+---
+
+# 🔍 Parámetros de los modelos YOLO (familia YOLO11)
+
+Ultralytics ofrece diferentes variantes según el compromiso **velocidad/peso/precisión**:
+
+| Modelo | Tamaño aprox | Velocidad | Precisión | Uso recomendado |
+|--------|--------------|-----------|-----------|-----------------|
+| `yolo11n` | ~4.3M params | Muy rápida | Media | Edge devices, drones |
+| `yolo11s` | ~9M params | Rápida | Alta | Uso general, producción ligera |
+| `yolo11m` | ~25M params | Media | Muy alta | Proyectos con buena GPU |
+| `yolo11l` | ~43M params | Lenta | Superior | Detección avanzada |
+| `yolo11x` | ~75M params | Más lenta | Máxima | Investigación o alta precisión |
+
+En este proyecto se utilizó **YOLO11s** por su excelente equilibrio entre velocidad y desempeño en objetos pequeños (crucial para fauna aérea).
+
+---
+
+# 📉 Funciones de Pérdida (Loss Functions) en YOLO
+
+YOLO utiliza una combinación de *losses* que optimizan distintos aspectos del aprendizaje:
+
+### **1. Bounding Box Regression Loss (bbox_loss)**
+- Normalmente basada en **CIoU** o **SIoU**
+- Mide qué tan bien coincide la caja predicha con la real
+- Considera:
+  - Distancia entre centros
+  - Superposición (IoU)
+  - Relación de aspecto
+
+### **2. Classification Loss (cls_loss)**
+- Basada en **Binary Cross Entropy (BCE)**  
+- Evalúa si el modelo acierta la clase del objeto
+
+### **3. DFL Loss (Distribution Focal Loss)**
+- Introducida en YOLOv8 y mantenida en YOLO11  
+- Permite una localización más precisa mediante distribución de bordes
+
+### **4. Objectness Loss**
+- Evalúa si realmente existe un objeto dentro de la predicción
+
+### **¿Y Focal Loss?**
+No se utilizó en este proyecto, pero es útil cuando hay fuerte desbalance de clases porque penaliza más los ejemplos difíciles.
+
+---
+
+# ⚙️ Optimizador Adam
+
+El modelo se entrenó utilizando **Adam**, uno de los optimizadores más efectivos en visión por computadora.
+
+### ¿Qué es Adam?
+Adam (Adaptive Moment Estimation) combina las ventajas de:
+
+- **Momentum** (acumula velocidad para evitar quedar atrapado en mínimos locales)
+- **RMSProp** (ajusta la tasa de aprendizaje por parámetro)
+
+### ¿Por qué es tan efectivo?
+- Utiliza tasas de aprendizaje adaptativas  
+- Maneja bien gradientes ruidosos  
+- Converge más rápido que SGD en datasets complejos  
+- Es muy estable en problemas de detección
+
+### Hiperparámetros comunes:
+- `lr = 0.001` (tasa de aprendizaje)
+- `beta1 = 0.9` (promedio móvil del gradiente)
+- `beta2 = 0.999` (promedio móvil del gradiente al cuadrado)
+- `eps = 1e-8` (evita división por cero)
 
 ---
 
 # ❓ Preguntas y Respuestas Técnicas (FAQ)
 
-### **1. ¿Qué criterios usaron para la corrección de anotaciones y cómo garantizaron consistencia?**
-Se automatizó el proceso mediante un script en Python que:
-- Reindexó las clases (de 1–6 → 0–5)
-- Convirtió coordenadas de Pascal VOC a YOLO
-- Validó rangos, formatos y coherencia  
-Esto eliminó variabilidad inter-anotador y garantizó consistencia.
+### **1. ¿Cómo garantizaron consistencia en la corrección de anotaciones?**
+Mediante un script automatizado:
+- Reindexación de clases (1–6 → 0–5)
+- Conversión VOC → YOLO
+- Validación de rangos y formatos  
+Eliminamos variabilidad inter-anotador.
 
 ---
 
-### **2. ¿Por qué no implementaron Focal Loss u oversampling para el desbalanceo de clases?**
-Por limitaciones de tiempo.  
-La corrección de datos tuvo mayor impacto inmediato (+61.4% mAP), por lo que técnicas avanzadas de balanceo se dejan como trabajo futuro.
+### **2. ¿Por qué no aplicar Focal Loss u oversampling?**
+Limitación de tiempo.  
+La corrección de anotaciones generó el mayor impacto inmediato (+61.4% mAP).
 
 ---
 
-### **3. ¿Por qué YOLO11s y no Detectron2 u otras variantes de YOLO?**
-YOLO11s demostró:
-- Mejor precisión en objetos pequeños (+3.2% mAP vs YOLOv8)
-- Mayor velocidad de inferencia
-- Eficiencia para despliegue en campo  
-Esto lo hizo ideal para el contexto del proyecto.
+### **3. ¿Por qué YOLO11s y no Detectron2 u otros modelos YOLO?**
+- +3.2% mAP en objetos pequeños vs YOLOv8  
+- Inferencia más rápida que HerdNet  
+- Eficiencia computacional ideal para despliegue
 
 ---
 
-### **4. ¿Cómo mejorar especies poco representadas como jabalí o waterbuck?**
-- Aplicar Focal Loss  
-- Aumento de datos por especie  
-- Generación sintética con GANs  
-- Recolección dirigida de datos  
+### **4. ¿Cómo mejorar especies poco representadas?**
+- Focal Loss  
+- Aumento de datos específico  
+- GANs para síntesis  
+- Recolección dirigida de imágenes  
 
 ---
 
-### **5. ¿La reducción de resolución afectó detección de individuos pequeños?**
+### **5. ¿La resolución reducida afecta objetos pequeños?**
 Sí.  
-Entrenar en 2048×2048 reduce información. Futuro: **pipeline multi-escala** (detección → refinamiento en alta resolución).
+Se recomienda: **pipeline multi-escala → refinamiento en alta resolución**.
 
 ---
 
-### **6. ¿Validaron generalización fuera de la Reserva Ennedi?**
+### **6. ¿Validación fuera de la Reserva Ennedi?**
 No en esta fase.  
-Se planea validar en Tanzania y Sudáfrica para evaluar transferibilidad.
+Se planea validar en Tanzania y Sudáfrica.
 
 ---
 
-### **7. ¿Cómo evitar correlaciones espurias del fondo?**
-Se aplicaron aumentos como rotación, brillo, mosaic.  
-Aun así, se recomienda incluir explicabilidad en siguientes fases.
+### **7. ¿Cómo evitar que el modelo aprenda el fondo?**
+Aumentos de datos variados (brillo, rotación, mosaic).  
+Aún así, requiere análisis de explicabilidad.
 
 ---
 
-### **8. ¿Realizaron validación con biólogos en campo?**
-No en esta etapa.  
-Es un paso crítico futuro para validar utilidad real en conservación.
+### **8. ¿Validación con biólogos en campo?**
+No se realizó aún.  
+Es un siguiente paso crítico.
 
 ---
 
-### **9. ¿Cómo manejan oclusiones en manadas densas?**
-El modelo mostró buen recall (86.6%).  
-No se usaron técnicas especializadas como repulsion loss, pero se consideran para iteraciones futuras.
+### **9. ¿Cómo maneja oclusiones parciales?**
+El modelo obtuvo 86.6% recall en manadas densas.  
+Futuro: técnicas como **repulsion loss**.
 
 ---
 
-### **10. ¿Qué recomiendan priorizar con recursos limitados: mejorar modelo o mejorar datos?**
+### **10. ¿Qué es mejor con recursos limitados: mejorar modelo o mejorar datos?**
 **Mejorar los datos.**  
-La corrección de anotaciones aportó +61.4% mAP, superando cualquier cambio de arquitectura.
+La corrección de anotaciones aportó +61.4% mAP.
 
 ---
 
-# 📂 Estructura sugerida del repositorio
+# 📂 Estructura del Repositorio
 
